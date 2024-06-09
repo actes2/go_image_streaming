@@ -1,4 +1,4 @@
-package image_streaming
+package go_image_streaming
 
 import (
 	"bytes"
