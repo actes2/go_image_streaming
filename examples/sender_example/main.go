@@ -24,6 +24,8 @@ func main() {
 	defer conn.Close()
 
 	for {
+
+		// This is gross as I just threw in an in-line struct, but you should be able to feed it any interface motif.
 		go_image_streaming.Screenshot_and_encode_jpeg_compressed(img_buff, struct {
 			x int
 			y int
