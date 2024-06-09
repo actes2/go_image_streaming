@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <link rel="stylesheet" href="styles.css">
+
+    <title>UDP Stream example</title>
+</head>
+<body>
+    <h1>This web-page is a Test!</h1>
+    <!-- <img id = "streamwindow" src="https://via.placeholder.com/150" alt="Image"> -->
+    <canvas id = "live-canvas" width="640" height="480"></canvas>
+     <Script>
+
+        let socket = new WebSocket("ws://localhost:8080/ws")
+        socket.binaryType = 'arraybuffer';
+
+        socket.onmessage = function(event) {
+                const blob = new Blob([event.data], { type: "image/jpeg" });
+                const url = URL.createObjectURL(blob);
+
+                const img = new Image();
+
+                img.onload = function() {
+                    const canvas = document.getElementById("live-canvas");
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+                    
+                    URL.revokeObjectURL(url); // Clean up our Object.
+                }
+
+                img.src = url;
+
+        };
+
+        socket.onopen = function(event) {
+            console.log("Opened socket");
+        };
+
+        socket.onclose = function(event) {
+            console.log("Socket has been closed");
+        };
+
+    </Script>
+</body>
+</html>
