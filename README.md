@@ -44,3 +44,99 @@ func Screenshot_and_encode_jpeg_compressed(
 > resizer -> int: Takes in a resizer factor, which I then under-the-hood resize back to its proper resolution, giving a 'fuzzier/blurrier' image but resulting in less packets which means better speed. I keep this at 2.
 
 Additionally, there's a few other functions included that follow the same style as the one above for sending. Including a PNG counterpart to the example
+
+## Examples
+
+Sender Example: 
+
+```go
+package main
+
+import (
+    "bytes"
+    "fmt"
+    "math"
+    "net"
+
+    "github.com/actes2/go_image_streaming"
+)
+
+func main() {
+    // Resolve the string address to a UDP address
+    udpAddr, err := net.ResolveUDPAddr("udp", "localhost:4470")
+
+    if err != nil {
+        fmt.Println("We've failed to resolve the udp address")
+        return
+    }
+
+    img_buff := new(bytes.Buffer)
+
+    conn, _ := net.DialUDP("udp", nil, udpAddr)
+    defer conn.Close()
+
+    for {
+
+        // This is gross as I just threw in an in-line struct, but you should be able to feed it any interface motif.
+        go_image_streaming.Screenshot_and_encode_jpeg_compressed(img_buff, struct {
+            x int
+            y int
+            w int
+            h int
+        }{
+            x: 0,
+            y: 0,
+            w: 1000,
+            h: 1000,
+        },
+            50,
+            4)
+        
+        // The reasoning for this portion is because UDP is limited at 65,535 Bytes, forcing us to wrap around our buff
+        buff_Max := len(img_buff.Bytes())
+        packet_Max := int(math.Ceil((float64(buff_Max) / float64(go_image_streaming.PACKET_SIZE))))
+
+
+        go_image_streaming.Transmit_UDP(packet_Max, conn, img_buff) // Sends off our packet header and body upon ack.
+
+
+    }
+}
+
+```
+
+
+Receiver Example:
+
+```go
+package main
+
+import (
+    "bytes"
+    "image"
+    "image/jpeg"
+    "log"
+    "os"
+    "github.com/actes2/go_image_streaming"
+)
+
+func main() {
+    
+    // This hard exits, usually you'd wrap this with a goroutine
+    img := go_image_streaming.Listen_for_UDP_stream("4470") 
+
+    // Create a new file to save the PNG
+    outFile, err := os.Create("output.jpeg")
+    if err != nil {
+        log.Fatalf("failed to create output file: %v", err)
+    }
+    defer outFile.Close()
+
+    // Encode the image to PNG and write it to the file
+    if err := jpeg.Encode(outFile, img); err != nil {
+        log.Fatalf("failed to encode image to jpeg: %v", err)
+    }
+
+    log.Println("PNG image successfully created")
+}
+```
