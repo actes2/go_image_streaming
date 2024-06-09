@@ -1,4 +1,4 @@
-module go_image_streaming
+module github.com/actes2/go_image_streaming
 
 go 1.22.3
 
