@@ -1,4 +1,4 @@
-module image_streaming
+module go_image_streaming
 
 go 1.22.3
 

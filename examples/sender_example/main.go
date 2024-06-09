@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"math"
 	"net"
-	"https://github.com/actes2/go_image_streaming"
+
+	"github.com/actes2/go_image_streaming"
 )
 
 func main() {
